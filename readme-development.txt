@@ -1,11 +1,7 @@
 #######################
 # One-time setup
 #######################
-# Create python venv - because it runs on python 3.8, not 3.13 like the rest of the docriver. This is not ideal
-cd $HOME
-python -m venv airflow-venv
-
-source ~/airflow-venv/bin/activate
+# Use the same venv created by the docriver-gateway
 pip install apache-airflow
 
 # Add to ~/.bashrc
