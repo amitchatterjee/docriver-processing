@@ -1,19 +1,29 @@
 
 import textwrap
+from pprint import pprint
 from datetime import datetime, timedelta
-
-# The DAG object; we'll need this to instantiate a DAG
 from airflow.models.dag import DAG
-
-# Operators; we need this to operate!
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+
+def print_context(ds=None, **kwargs):
+    """Print the Airflow context and ds variable from the context."""
+    print("::group::All kwargs")
+    pprint(kwargs)
+    print("::endgroup::")
+    print("::group::Context variable ds")
+    print(ds)
+    print("::endgroup::")
+    return "Whatever you return gets printed in the logs"
+
 with DAG(
-    "hello-world",
+    "process-cheetahs",
+
     # These args will get passed on to each operator
     # You can override them on a per-task basis during operator initialization
     default_args={
         "depends_on_past": False,
-        "email": ["airflow@example.com"],
+        "email": ["info@quik-j.com"],
         "email_on_failure": False,
         "email_on_retry": False,
         "retries": 1,
@@ -32,14 +42,17 @@ with DAG(
         # 'on_skipped_callback': another_function, #or list of functions
         # 'trigger_rule': 'all_success'
     },
-    description="A simple tutorial DAG",
+    description="A docriver processing pipeline for processing Cheetah images",
     schedule=timedelta(days=1),
     start_date=datetime(2021, 1, 1),
     catchup=False,
-    tags=["example"],
+    tags=["docriver", "cheetah", "processing"],
 ) as dag:
-
-    # t1, t2 and t3 are examples of tasks created by instantiating operators
+    """
+        A DAG for processing cheetah images
+    """
+    dag.doc_md = __doc__
+   
     t1 = BashOperator(
         task_id="print_date",
         bash_command="date",
@@ -51,21 +64,7 @@ with DAG(
         bash_command="sleep 5",
         retries=3,
     )
-    t1.doc_md = textwrap.dedent(
-        """\
-    #### Task Documentation
-    You can document your task using the attributes `doc_md` (markdown),
-    `doc` (plain text), `doc_rst`, `doc_json`, `doc_yaml` which gets
-    rendered in the UI's Task Instance Details page.
-    ![img](https://imgs.xkcd.com/comics/fixing_problems.png)
-    **Image Credit:** Randall Munroe, [XKCD](https://xkcd.com/license.html)
-    """
-    )
-
-    dag.doc_md = __doc__  # providing that you have a docstring at the beginning of the DAG; OR
-    dag.doc_md = """
-    This is a documentation placed anywhere
-    """  # otherwise, type it like this
+    
     templated_command = textwrap.dedent(
         """
     {% for i in range(5) %}
@@ -81,4 +80,6 @@ with DAG(
         bash_command=templated_command,
     )
 
-    t1 >> [t2, t3]
+    t4 = PythonOperator(task_id="print_the_context", python_callable=print_context)
+
+    t1 >> [t2, t3] >> t4
